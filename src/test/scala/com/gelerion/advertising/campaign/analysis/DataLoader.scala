@@ -23,7 +23,7 @@ object DataLoader {
       .write
       .partitionBy("date")
       .mode(SaveMode.Overwrite)
-      .json("data/ad_events")
+      .json("data/streaming_event_data")
   }
 
   private def buildSpark: SparkSession = {
