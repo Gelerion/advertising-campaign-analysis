@@ -27,8 +27,6 @@ object AdEventsDataGenerator {
   }
 
   private def timestampGen(between: BetweenDates): Gen[Long] = {
-//    val rangeStart = LocalDateTime.now(UTC).minusDays(1).toEpochSecond(UTC)
-//    val rangeEnd = LocalDateTime.now(UTC).toEpochSecond(UTC)
     Gen.choose(between.start, between.end).map(_.toEpochSecond(UTC))
   }
 }
