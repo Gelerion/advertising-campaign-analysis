@@ -20,7 +20,7 @@ object AdEventsDataGenerator {
       clickId <- clickIdGen
       timestamp <- timestampGen(betweenDates)
     } yield {
-      AdEvent(adId, userId, campaignId, clickId, timestamp)
+      AdEvent(adId, userId, campaignId, clickId.map(_.toString), timestamp)
     }
 
     Gen.listOfN(howMany, adEventGen).sample.get
@@ -32,4 +32,4 @@ object AdEventsDataGenerator {
 }
 
 case class BetweenDates(start: LocalDateTime, end: LocalDateTime)
-case class AdEvent(adId: Int, userId: Int, campaignId: Int, clickId: Option[Int], timestamp: Long)
+case class AdEvent(ad_id: Int, user_id: Int, campaign_id: Int, click_id: Option[String], timestamp: Long)
