@@ -16,9 +16,7 @@ In the digital advertising industry, understanding the effectiveness of online c
 
 Let's consider a scenario where a digital advertising agency is running multiple ad campaigns across various platforms and wants to assess the reach and engagement of each campaign. The agency collects data that includes user interactions with ads, such as ad impressions and clicks. 
 
-<aside>
-💡 Note: In the context of online advertising, an impression refers to the display of an ad to a user on a website or app.
-</aside>
+> 💡 **Note:** In the context of online advertising, an impression refers to the display of an ad to a user on a website or app.
 
 As a data engineer, you have been requested to calculate the following:
 
@@ -27,14 +25,12 @@ As a data engineer, you have been requested to calculate the following:
 
 These metrics should be aggregated daily to provide trend reports and insights into the effectiveness of the campaigns over time.
 
-<aside>
-💡 Note: You can find the full example here: [https://github.com/Gelerion/advertising-campaign-analysis](https://github.com/Gelerion/advertising-campaign-analysis)
-</aside>
-
+> 💡 **Note:** You can find the code here: [advertising-campaign-analysis](https://github.com/Gelerion/advertising-campaign-analysis)
+  
 ### Input
 Impressions and clicks events are continuously generated, streamed in real-time, and stored on Amazon S3. Events are bucketed by date in the `yyyy-mm-dd` format. To simplify the process, impressions and clicks are unified into a single stream. 
 
-```scala
+```
 s3/
 ├─ streaming_event_data/
    ├─ ...
@@ -53,13 +49,9 @@ s3/
 | click_id    | String    | Unique identifier for each ad click (nullable)             |
 | timestamp   | Timestamp | Timestamp indicating when the impression or click occurred |
 
-<aside>
-💡 Any event with a null value in `click_id` will be counted as an impression event
-</aside>
+> 💡 **Note:** Any event with a null value in `click_id` will be counted as an impression event
 
-<aside>
-💡 You can find the data example here: [streaming_event_data](https://github.com/Gelerion/advertising-campaign-analysis/tree/main/data/streaming_event_data)
-</aside>
+> 💡 **Note:** You can find the data example here: [streaming_event_data](https://github.com/Gelerion/advertising-campaign-analysis/tree/main/data/streaming_event_data)
 
 ## Building aggregative reports
 There is a daily batch job runs once every 24 hours to calculate daily aggregates from the streaming event data. This job retrieves events generated within the previous day and aggregates them with historical data. 
@@ -87,7 +79,7 @@ adEvents.createOrReplaceTempView("ad_events")
 
 1. Compute the aggregates for user engagement
 
-```scala
+```sql
 SELECT date, campaign_id, ad_id, theta_sketch_build(user_id) AS unique_users
 FROM ad_events
 WHERE click_id IS NOT NULL
@@ -103,9 +95,7 @@ userEngagement
   .parquet("data/historical_data/user_engagement")
 ```
 
-<aside>
-💡 For brevity, we will omit the audience reach report. The complete example can be found here: [CampaignAnalysisNaiveStrategy](https://github.com/Gelerion/advertising-campaign-analysis/blob/main/src/main/scala/com/gelerion/advertising/campaign/analysis/CampaignAnalysisNaiveStrategy.scala)
-</aside>
+> 💡 **Note:** For brevity, we will omit the audience reach report. The complete example can be found here: [CampaignAnalysisNaiveStrategy](https://github.com/Gelerion/advertising-campaign-analysis/blob/main/src/main/scala/com/gelerion/advertising/campaign/analysis/CampaignAnalysisNaiveStrategy.scala)
 
 ### Drawbacks
 As mentioned earlier, counting the exact number of distinct values can be resource-intensive and time-consuming. Since it is not cumulative, the entire history of raw data must be loaded, merged, and aggregated every day.
@@ -123,9 +113,7 @@ To begin, include the Data Sketches library in your dependency management build:
 </dependency>
 ```
 
-<aside>
-💡 Check the compatibility matrix here: (spark-sketches)[https://github.com/Gelerion/spark-sketches] 
-</aside>
+> 💡 **Note:** You can find the source and the Spark versions compatibility matrix here: [spark-sketches](https://github.com/Gelerion/spark-sketches)
 
 To use new functions in SQL queries, you will also have to register them. This only needs to be done once.
 
@@ -146,7 +134,7 @@ adEvents.createOrReplaceTempView("ad_events")
 
 1. Compute the aggregates for user engagement 
 
-```scala
+```sql
 SELECT date, campaign_id, ad_id, theta_sketch_build(user_id) AS unique_users
 FROM ad_events
 WHERE click_id IS NOT NULL
@@ -166,9 +154,7 @@ userEngagement
 
 As simple as that!
 
-<aside>
-💡 The complete example can be found here: [CampaignAnalysisSketchesStrategy](https://github.com/Gelerion/advertising-campaign-analysis/blob/main/src/main/scala/com/gelerion/advertising/campaign/analysis/CampaignAnalysisSketchesStrategy.scala)
-</aside>
+> 💡 **Note:** The complete example can be found here: [CampaignAnalysisSketchesStrategy](https://github.com/Gelerion/advertising-campaign-analysis/blob/main/src/main/scala/com/gelerion/advertising/campaign/analysis/CampaignAnalysisSketchesStrategy.scala)
 
 ## Exploring historical data
 Data lake layout:
@@ -187,9 +173,7 @@ s3/
 
 As you can see the historical data is in the Parquet format, bucketed by date, and split into partitions. This allows queries to scan only a specific range of data when filtering by dates.
 
-<aside>
-💡 Tip: When loading data into a data lake, consider ordering it by the most frequently used dimensions in queries. This can improve scan efficiency even further.
-</aside>
+> 💡 **Tip:** When loading data into a data lake, consider ordering it by the most frequently used dimensions in queries. This can improve scan efficiency even further.
 
 Let's review the aggregated schema:
 
@@ -212,17 +196,11 @@ Upon reviewing the files, an interesting detail comes to light: the `unique_user
 
 Now that you have the ETL process up and running, let's move on to addressing the business requirements: analyzing the effectiveness of the campaign in terms of user engagement. 
 
-<aside>
-💡 To provide greater flexibility for businesses to gain insights, it is important to keep historical data as detailed as possible. We have aggregated reports that include date, campaign id, and even ad id.
-</aside>
+> 💡 **Note:** To provide greater flexibility for businesses to gain insights, it is important to keep historical data as detailed as possible. We have aggregated reports that include date, campaign id, and even ad id.
 
-<aside>
-💡 The example is based on mock, auto-generated data.
-</aside>
+> 💡 **Note:** The example is based on mock, auto-generated data.
 
-<aside>
-💡 Please find the complete example here: [advertising-campaign-analysis](https://github.com/Gelerion/advertising-campaign-analysis/blob/main/src/main/scala/com/gelerion/advertising/campaign/analysis/reports/UserEngagementReport.scala)
-</aside>
+> 💡 **Note:** Please find the complete example here: [advertising-campaign-analysis](https://github.com/Gelerion/advertising-campaign-analysis/blob/main/src/main/scala/com/gelerion/advertising/campaign/analysis/reports/UserEngagementReport.scala)
 
 ### The user engagement for each ad per day
 Let's start with something simple and create a report that doesn't require grouping the data. This report demonstrates you how to leverage the `theta_sketch_get_estimate` function to retrieve actual values from the sketch.
@@ -308,5 +286,3 @@ In this article, you have learned how to create an efficient ETL process that ta
 ### Stay tuned
 In the second part, you will learn how to stream aggregated data to Druid for interactive analysis in near real time. 
   
-You can find the complete project here: [advertising-campaign-analysis](https://github.com/Gelerion/advertising-campaign-analysis/tree/main)
-The spark-sketches library allows for the use of Theta Sketches with Spark, you can find it here: [park-sketches](https://github.com/Gelerion/spark-sketches)
