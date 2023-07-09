@@ -132,7 +132,7 @@ val adEvents = spark.read
 adEvents.createOrReplaceTempView("ad_events")
 ```
 
-1. Compute the aggregates for user engagement 
+2. Compute the aggregates for user engagement 
 
 ```sql
 SELECT date, campaign_id, ad_id, theta_sketch_build(user_id) AS unique_users
@@ -257,7 +257,7 @@ Output:
 +----------+-----------+-----+------------+
 ```
 
-### The daily trend for user engagement in the campaign.
+### The daily trend for user engagement per campaign
 Sketches are particularly useful when you need to group values while dropping dimensions. Counting distinct values over aggregated data is not possible, but it is certainly achievable with sketches. This report shows you how to use the `theta_sketch_merge` function to merge sketches.
 
 ```sql
