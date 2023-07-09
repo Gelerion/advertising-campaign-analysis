@@ -1,9 +1,9 @@
 package com.gelerion.advertising.campaign.analysis
 
-import java.lang.Math.{max, min}
-
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
+
+import java.lang.Math.{max, min}
 
 trait SparkJob {
   val nCores: Int = Runtime.getRuntime.availableProcessors
@@ -20,5 +20,4 @@ trait SparkJob {
     .config("spark.sql.shuffle.partitions", "8")
     .config("spark.sql.sources.partitionOverwriteMode", "dynamic")
     .getOrCreate()
-
 }

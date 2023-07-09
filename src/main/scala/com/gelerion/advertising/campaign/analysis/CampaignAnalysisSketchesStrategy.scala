@@ -1,6 +1,5 @@
 package com.gelerion.advertising.campaign.analysis
 
-import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.registrar.SketchFunctionsRegistrar
 
 object CampaignAnalysisSketchesStrategy extends SparkJob {
@@ -10,12 +9,9 @@ object CampaignAnalysisSketchesStrategy extends SparkJob {
     SketchFunctionsRegistrar.registerFunctions(spark)
 
     // Read the streaming event data for the previous day
-    val adEvents = spark.read
-      .option("basePath", "data/streaming_event_data")
-      .json("data/streaming_event_data/date=*")
+    val adEvents = CampaignAnalysis.readAdEvents("2023-05-20")
     adEvents.show(4)
     println("=======================================================================")
-
     adEvents.createOrReplaceTempView("ad_events")
 
     // Compute the daily aggregates
@@ -26,7 +22,6 @@ object CampaignAnalysisSketchesStrategy extends SparkJob {
         |FROM ad_events
         |GROUP BY date, campaign_id
         |""".stripMargin)
-    audienceReach.createOrReplaceTempView("audience_reach")
 
     // 2. User engagement
     val userEngagement = spark.sql(
@@ -36,25 +31,13 @@ object CampaignAnalysisSketchesStrategy extends SparkJob {
         |WHERE click_id IS NOT NULL
         |GROUP BY date, campaign_id, ad_id
         |""".stripMargin)
-    userEngagement.createOrReplaceTempView("user_engagement")
 
     // [Optional] Show output
     showAggregatedReport()
 
-    // Write the results to the data lake
-    audienceReach
-      .repartition(1, col("date"))
-      .write
-      .mode("overwrite")
-      .partitionBy("date")
-      .json("data/historical_data/audience_reach")
-
-    userEngagement
-      .repartition(1, col("date"))
-      .write
-      .mode("overwrite")
-      .partitionBy("date")
-      .json("data/historical_data/user_engagement")
+    // Load to the data lake
+    CampaignAnalysis.loadToDataLake("audience_reach", audienceReach)
+    CampaignAnalysis.loadToDataLake("user_engagement", userEngagement)
   }
 
   private def showAggregatedReport(): Unit = {
